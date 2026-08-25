@@ -1,0 +1,109 @@
+name: Telegram Filter Test
+
+"on":
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  filter-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install requests
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+
+      - name: Test NSE Volume Gainer filters
+        run: |
+          python - <<'PY'
+          import time
+          import requests
+
+          NSE_BASE_URL = "https://www.nseindia.com"
+          URL = f"{NSE_BASE_URL}/api/live-analysis-volume-gainers"
+
+          MIN_VOLUME = 500_000
+          MIN_PRICE = 250.0
+
+          headers = {
+              "User-Agent": (
+                  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                  "AppleWebKit/537.36 Chrome/124.0.0.0 Safari/537.36"
+              ),
+              "Accept": "application/json, text/plain, */*",
+              "Accept-Language": "en-US,en;q=0.9",
+              "Referer": f"{NSE_BASE_URL}/market-data/volume-gainers",
+          }
+
+          session = requests.Session()
+          session.headers.update(headers)
+
+          print("Opening NSE session...")
+          session.get(NSE_BASE_URL, timeout=20)
+          time.sleep(0.5)
+
+          session.get(
+              f"{NSE_BASE_URL}/market-data/volume-gainers",
+              timeout=20,
+          )
+          time.sleep(0.5)
+
+          print("Fetching NSE Volume Gainers...")
+          response = session.get(URL, timeout=20)
+          response.raise_for_status()
+
+          payload = response.json()
+          rows = payload.get("data", [])
+
+          print(f"Total NSE records: {len(rows)}")
+          print(f"Filter: Volume >= {MIN_VOLUME:,}")
+          print(f"Filter: Price >= ₹{MIN_PRICE:,.2f}")
+          print()
+
+          eligible = []
+
+          for row in rows:
+              try:
+                  symbol = str(row.get("symbol") or "").strip().upper()
+                  price = float(row.get("ltp") or 0)
+                  volume = float(row.get("volume") or 0)
+
+                  if not symbol:
+                      continue
+
+                  if volume < MIN_VOLUME:
+                      continue
+
+                  if price < MIN_PRICE:
+                      continue
+
+                  eligible.append((symbol, price, volume))
+
+              except (TypeError, ValueError):
+                  continue
+
+          print(f"Eligible Telegram records: {len(eligible)}")
+          print()
+          print("Eligible symbols:")
+          print("------------------")
+
+          for symbol, price, volume in eligible:
+              print(
+                  f"{symbol:20} "
+                  f"Price=₹{price:,.2f} "
+                  f"Volume={volume:,.0f}"
+              )
+
+          print()
+          print("Filter test completed successfully.")
+          print("NO Telegram message was sent.")
+          print("telegram_state.json was NOT changed.")
+          PY
