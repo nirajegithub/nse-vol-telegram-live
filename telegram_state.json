@@ -1,5 +1,31 @@
 {
-  "date": null,
-  "notified_symbols": [],
-  "baseline_initialized": false
+  "date": "2026-08-25",
+  "notified_symbols": [
+    "AFCONS",
+    "ARCHIDPLY",
+    "BBNPNBETF",
+    "BRIGHOTEL",
+    "BSE500IETF",
+    "ENTERO",
+    "FACT",
+    "FMGOETZE",
+    "GSPCROP",
+    "INSUREIETF",
+    "KJMCFIN",
+    "MADRASFERT",
+    "MAKERSL",
+    "MARATHON",
+    "MINALIND",
+    "NFL",
+    "NITCO",
+    "RAMBHAJO",
+    "RATNAMANI",
+    "RCF",
+    "S&SPOWER",
+    "SUMIT",
+    "SUPTANERY",
+    "VALIANTLAB",
+    "VGCL"
+  ],
+  "baseline_initialized": true
 }
