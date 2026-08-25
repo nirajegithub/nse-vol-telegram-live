@@ -5,6 +5,8 @@
     "ALMONDZ",
     "ANSALBU",
     "ARCHIDPLY",
+    "BAJAJINDEF",
+    "BANKNIFTY1",
     "BBNPNBETF",
     "BIOFILCHEM",
     "BOROLTD",
@@ -19,6 +21,7 @@
     "GANGAFORGE",
     "GENESYS",
     "GSPCROP",
+    "HPIL",
     "INSUREIETF",
     "IVZINNIFTY",
     "IWP",
@@ -40,6 +43,7 @@
     "RAMBHAJO",
     "RATNAMANI",
     "RCF",
+    "RPTECH",
     "S&SPOWER",
     "SNXT30BEES",
     "SPIC",
@@ -49,7 +53,8 @@
     "TEXRAIL",
     "UNICHEMLAB",
     "VALIANTLAB",
-    "VGCL"
+    "VGCL",
+    "ZFCVINDIA"
   ],
   "baseline_initialized": true
 }
