@@ -1,5 +1,8 @@
 {
-  "date": null,
-  "notified_symbols": [],
-  "baseline_initialized": false
+  "date": "2026-08-26",
+  "notified_symbols": [
+    "VBL",
+    "VIYASH"
+  ],
+  "baseline_initialized": true
 }
