@@ -1,16 +1,12 @@
 {
-  "date": "2026-08-26",
+  "date": "2026-08-27",
   "notified_symbols": [
-    "ARIES",
-    "GENESYS",
-    "ONIXSOLAR",
-    "QUESS",
-    "SAIPARENT",
-    "SIMPLEXINF",
-    "TCC",
-    "VBL",
-    "VIYASH",
-    "VOEPL"
+    "BBTC",
+    "ICICIAMC",
+    "INOXINDIA",
+    "MVELECTRO",
+    "RAMRAT",
+    "SHYAMMETL"
   ],
   "baseline_initialized": true
 }
