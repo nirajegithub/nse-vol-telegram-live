@@ -3,12 +3,13 @@ name: NSE Telegram Monitor
 "on":
   schedule:
     # GitHub cron is UTC.
-    # 09:15 IST = 03:45 UTC
-    # 09:30-08:45 IST = every 15 min via this entry
-    # 09:00-09:30 UTC = 14:30-15:00 IST
-    - cron: "45 3 * * 1-5"
-    - cron: "*/15 4-8 * * 1-5"
-    - cron: "0,15,30 9 * * 1-5"
+    # 09:22 IST = 03:52 UTC.
+    # Runs every 15 minutes through 14:52 IST,
+    # then final run at 15:07 IST would be outside the Python
+    # 15:00 processing window and therefore be skipped.
+    - cron: "52 3 * * 1-5"
+    - cron: "7,22,37,52 4-13 * * 1-5"
+    - cron: "7,22,37,52 14 * * 1-5"
   workflow_dispatch:
 
 permissions:
@@ -21,6 +22,7 @@ concurrency:
 jobs:
   telegram-monitor:
     runs-on: ubuntu-latest
+
     env:
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
