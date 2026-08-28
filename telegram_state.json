@@ -1,12 +1,12 @@
 {
-  "date": "2026-08-27",
+  "date": "2026-08-28",
   "notified_symbols": [
-    "BBTC",
-    "ICICIAMC",
-    "INOXINDIA",
+    "DCI",
+    "JGCHEM",
+    "JUSTDIAL",
+    "MASTEK",
     "MVELECTRO",
-    "RAMRAT",
-    "SHYAMMETL"
+    "TEJASNET"
   ],
   "baseline_initialized": true
 }
