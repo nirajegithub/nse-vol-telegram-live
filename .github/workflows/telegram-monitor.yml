@@ -2,7 +2,13 @@ name: NSE Telegram Monitor
 
 "on":
   schedule:
-    - cron: "*/15 * * * *"
+    # GitHub cron is UTC.
+    # 09:15 IST = 03:45 UTC
+    # 09:30-08:45 IST = every 15 min via this entry
+    # 09:00-09:30 UTC = 14:30-15:00 IST
+    - cron: "45 3 * * 1-5"
+    - cron: "*/15 4-8 * * 1-5"
+    - cron: "0,15,30 9 * * 1-5"
   workflow_dispatch:
 
 permissions:
@@ -15,7 +21,6 @@ concurrency:
 jobs:
   telegram-monitor:
     runs-on: ubuntu-latest
-
     env:
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -37,9 +42,7 @@ jobs:
           pip install requests
 
       - name: Run Telegram worker
-        run: |
-          python telegram_worker.py
+        run: python telegram_worker.py
 
       - name: Show Git status
-        run: |
-          git status --short
+        run: git status --short
