@@ -1,8 +1,19 @@
 name: NSE Telegram Monitor
 
-on:
+"on":
   schedule:
-    - cron: "*/15 * * * *"
+    # 09:22 IST = 03:52 UTC
+    - cron: "52 3 * * 1-5"
+
+    # 09:37, 09:52
+    # 10:07, 10:22, 10:37, 10:52
+    # 11:07 ... 13:52
+    # 14:07, 14:22
+    - cron: "7,22,37,52 4-8 * * 1-5"
+
+    # 14:37, 14:52 IST
+    - cron: "7,22 9 * * 1-5"
+
   workflow_dispatch:
 
 permissions:
@@ -37,9 +48,7 @@ jobs:
           pip install requests
 
       - name: Run Telegram worker
-        run: |
-          python telegram_worker.py
+        run: python telegram_worker.py
 
       - name: Show Git status
-        run: |
-          git status --short
+        run: git status --short
