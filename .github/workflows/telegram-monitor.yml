@@ -6,11 +6,11 @@ on:
     # 09:22 IST = 03:52 UTC
     - cron: "52 3 * * 1-5"
 
-    # 09:37 IST through 14:52 IST, every 15 minutes
-    - cron: "7,22,37,52 4-9 * * 1-5"
+    # 09:37 IST through 14:22 IST, every 15 minutes
+    - cron: "7,22,37,52 4-8 * * 1-5"
 
-    # 15:07 IST and 15:17 IST
-    - cron: "37,47 9 * * 1-5"
+    # 14:37, 14:52, 15:07 and 15:17 IST
+    - cron: "7,22,37,47 9 * * 1-5"
 
   workflow_dispatch:
 
