@@ -181,6 +181,7 @@ def run():
 
     if not is_trading_day(now):
         return
+
     if not is_monitoring_window(now):
         log("Outside 09:15-15:00 IST monitoring window - skipping.")
         return
@@ -218,6 +219,7 @@ def run():
             new_rows.append(row)
 
     log(f"New qualifying symbols: {len(new_rows)}")
+
     state_changed = False
     detected_at = now.strftime("%I:%M %p")
 
