@@ -2,14 +2,19 @@ name: NSE Telegram Monitor
 
 "on":
   schedule:
-    # GitHub cron is UTC.
-    # 09:22 IST = 03:52 UTC.
-    # Runs every 15 minutes through 14:52 IST,
-    # then final run at 15:07 IST would be outside the Python
-    # 15:00 processing window and therefore be skipped.
+    # 09:22 IST = 03:52 UTC
     - cron: "52 3 * * 1-5"
-    - cron: "7,22,37,52 4-13 * * 1-5"
-    - cron: "7,22,37,52 14 * * 1-5"
+
+    # 09:37, 09:52
+    # 10:07, 10:22, 10:37, 10:52
+    # ...
+    # 14:07, 14:22, 14:37
+    # = 04:07 through 08:52 UTC
+    - cron: "7,22,37,52 4-8 * * 1-5"
+
+    # 14:52 IST = 09:22 UTC
+    - cron: "7,22 9 * * 1-5"
+
   workflow_dispatch:
 
 permissions:
