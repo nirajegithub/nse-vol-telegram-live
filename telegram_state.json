@@ -1,14 +1,8 @@
 {
-  "date": "2026-08-28",
+  "date": "2026-08-31",
   "notified_symbols": [
-    "DCI",
-    "JGCHEM",
-    "JUSTDIAL",
-    "MASTEK",
-    "MVELECTRO",
-    "PRECWIRE",
-    "SPAL",
-    "TEJASNET"
+    "NORTHARC",
+    "TARIL"
   ],
   "baseline_initialized": true
 }
