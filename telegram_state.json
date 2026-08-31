@@ -1,11 +1,16 @@
 {
   "date": "2026-08-31",
   "notified_symbols": [
+    "AIIL",
     "ALIVUS",
+    "ASIANHOTNR",
+    "AYMSYNTEX",
     "DIFFNKG",
     "JUSTDIAL",
     "NORTHARC",
+    "SPLPETRO",
     "TARIL",
+    "VENKEYS",
     "VIMTALABS"
   ],
   "baseline_initialized": true
