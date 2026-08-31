@@ -9,6 +9,7 @@ from zoneinfo import ZoneInfo
 import requests
 
 IST = ZoneInfo("Asia/Kolkata")
+
 NSE_BASE_URL = "https://www.nseindia.com"
 VOLUME_GAINERS_URL = f"{NSE_BASE_URL}/api/live-analysis-volume-gainers"
 TELEGRAM_API_URL = "https://api.telegram.org"
@@ -16,23 +17,31 @@ TELEGRAM_API_URL = "https://api.telegram.org"
 STATE_FILE = Path("telegram_state.json")
 HOLIDAY_FILE = Path("nse_holidays.json")
 
-# Worker accepts scheduled checks from 09:22 through 15:17 IST.
+# Requested monitoring window:
+# 09:22, 09:37, 09:52 ... 14:52, 15:07, 15:17 IST.
+# Allow a few minutes beyond 15:17 so a slightly delayed GitHub run
+# is still processed instead of being rejected.
 MARKET_START_MINUTES = 9 * 60 + 15
-MARKET_END_MINUTES = 15 * 60 + 18
+MARKET_END_MINUTES = 15 * 60 + 25
 
 TELEGRAM_MIN_VOLUME = 500_000
 TELEGRAM_MIN_PRICE = 250.0
-REQUEST_TIMEOUT = 15
+
+REQUEST_TIMEOUT = 20
+NSE_RETRIES = 3
 
 HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
         "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/124.0.0.0 Safari/537.36"
+        "Chrome/139.0.0.0 Safari/537.36"
     ),
     "Accept": "application/json, text/plain, */*",
     "Accept-Language": "en-US,en;q=0.9",
-    "Referer": f"{NSE_BASE_URL}/market-data/volume-gainers",
+    "Referer": f"{NSE_BASE_URL}/market-data/volume-gainers-spurts",
+    "Connection": "keep-alive",
+    "Cache-Control": "no-cache",
+    "Pragma": "no-cache",
 }
 
 
@@ -44,42 +53,93 @@ def log(message):
 
 
 def create_nse_session():
+    """
+    Create an NSE session.
+
+    IMPORTANT:
+    Do NOT call https://www.nseindia.com/ first.
+    GitHub Actions runners can receive HTTP 403 from the NSE homepage,
+    which previously caused the worker to stop before reaching the
+    volume-gainers API.
+
+    The volume-gainers API itself is requested directly.
+    """
     session = requests.Session()
     session.headers.update(HEADERS)
-
-    home = session.get(NSE_BASE_URL, timeout=REQUEST_TIMEOUT)
-    home.raise_for_status()
-
-    time.sleep(0.5)
-
-    page = session.get(
-        f"{NSE_BASE_URL}/market-data/volume-gainers",
-        timeout=REQUEST_TIMEOUT,
-    )
-    page.raise_for_status()
-
-    time.sleep(0.5)
     return session
 
 
 def fetch_volume_gainers():
-    session = create_nse_session()
+    """
+    Fetch NSE volume gainers with retries.
 
-    response = session.get(
-        VOLUME_GAINERS_URL,
-        timeout=REQUEST_TIMEOUT,
+    The previous version failed because create_nse_session() performed
+    a homepage request and NSE returned:
+        403 Client Error: Forbidden for https://www.nseindia.com/
+
+    We now call the volume-gainers API directly and retry transient
+    403/429/5xx responses.
+    """
+    last_error = None
+
+    for attempt in range(1, NSE_RETRIES + 1):
+        session = create_nse_session()
+
+        try:
+            log(
+                f"Fetching NSE Volume Gainers directly "
+                f"(attempt {attempt}/{NSE_RETRIES})..."
+            )
+
+            response = session.get(
+                VOLUME_GAINERS_URL,
+                timeout=REQUEST_TIMEOUT,
+                allow_redirects=True,
+            )
+
+            if response.status_code == 403:
+                last_error = RuntimeError(
+                    "NSE returned HTTP 403 Forbidden for the volume-gainers API."
+                )
+                log(
+                    "NSE returned 403. Retrying without making a homepage "
+                    "request..."
+                )
+
+            elif response.status_code == 429:
+                last_error = RuntimeError(
+                    "NSE returned HTTP 429 Too Many Requests."
+                )
+                log("NSE returned 429. Waiting before retry...")
+
+            else:
+                response.raise_for_status()
+
+                payload = response.json()
+                rows = payload.get("data", [])
+
+                if not isinstance(rows, list):
+                    raise RuntimeError(
+                        "NSE Volume Gainers response did not contain a data list."
+                    )
+
+                log(
+                    f"NSE API successful. Timestamp: "
+                    f"{payload.get('timestamp', 'N/A')}"
+                )
+                return rows
+
+        except (requests.RequestException, ValueError, RuntimeError) as exc:
+            last_error = exc
+            log(f"NSE request attempt {attempt} failed: {exc}")
+
+        if attempt < NSE_RETRIES:
+            time.sleep(2 * attempt)
+
+    raise RuntimeError(
+        f"Unable to fetch NSE Volume Gainers after {NSE_RETRIES} attempts: "
+        f"{last_error}"
     )
-    response.raise_for_status()
-
-    payload = response.json()
-    rows = payload.get("data", [])
-
-    if not isinstance(rows, list):
-        raise RuntimeError(
-            "NSE Volume Gainers response did not contain a data list."
-        )
-
-    return rows
 
 
 def apply_telegram_filters(rows):
@@ -121,12 +181,7 @@ def load_holidays():
 
 def is_monitoring_window(now):
     minutes = now.hour * 60 + now.minute
-
-    return (
-        MARKET_START_MINUTES
-        <= minutes
-        < MARKET_END_MINUTES
-    )
+    return MARKET_START_MINUTES <= minutes < MARKET_END_MINUTES
 
 
 def is_trading_day(now):
@@ -161,10 +216,11 @@ def load_state(today):
         log(f"Invalid state file; resetting: {exc}")
         return default
 
+    # Automatically start a fresh state on every new trading date.
     if state.get("date") != today:
         log(
-            "New trading date detected. "
-            f"Resetting state from {state.get('date')} to {today}."
+            f"New trading date detected. Resetting state from "
+            f"{state.get('date')} to {today}."
         )
         return default
 
@@ -200,8 +256,7 @@ def get_telegram_config():
 
     if not token or not chat_id:
         raise RuntimeError(
-            "TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID "
-            "secrets are required."
+            "TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID secrets are required."
         )
 
     return token, chat_id
@@ -229,9 +284,7 @@ def fmt_percent(value):
 
 
 def build_message(row, detected_at):
-    symbol = str(
-        row.get("symbol") or "N/A"
-    ).strip().upper()
+    symbol = str(row.get("symbol") or "N/A").strip().upper()
 
     return (
         "🚨 <b>New NSE Volume Gainer</b>\n\n"
@@ -239,19 +292,18 @@ def build_message(row, detected_at):
         f"💰 <b>Price:</b> {fmt_price(row.get('ltp'))}\n"
         f"📈 <b>Price Change:</b> "
         f"{fmt_percent(row.get('pChange'))}\n"
-        f"📊 <b>Volume:</b> "
-        f"{fmt_number(row.get('volume'))}\n"
+        f"📊 <b>Volume:</b> {fmt_number(row.get('volume'))}\n"
         f"🔥 <b>Volume Spike vs 1wk:</b> "
         f"{fmt_percent(row.get('week1volChange'))}\n"
         f"🔥 <b>Volume Spike vs 2wk:</b> "
         f"{fmt_percent(row.get('week2volChange'))}\n\n"
         f"🕒 <b>Detected:</b> {detected_at} IST\n\n"
         "⚠️ <b>Disclaimer:</b>\n"
-        "This is an automated NSE market-data alert for "
-        "informational purposes only. It is not investment advice, "
-        "a buy/sell recommendation, or a trading signal. "
-        "Please do your own research and risk assessment before "
-        "making any investment or trading decision."
+        "This is an automated NSE market-data alert for informational "
+        "purposes only. It is not investment advice, a buy/sell "
+        "recommendation, or a trading signal. Please do your own research "
+        "and risk assessment before making any investment or trading "
+        "decision."
     )
 
 
@@ -274,9 +326,7 @@ def send_telegram(message):
     result = response.json()
 
     if not result.get("ok"):
-        raise RuntimeError(
-            f"Telegram API error: {result}"
-        )
+        raise RuntimeError(f"Telegram API error: {result}")
 
 
 def commit_state():
@@ -285,12 +335,7 @@ def commit_state():
         return
 
     subprocess.run(
-        [
-            "git",
-            "config",
-            "user.name",
-            "github-actions[bot]",
-        ],
+        ["git", "config", "user.name", "github-actions[bot]"],
         check=True,
     )
 
@@ -299,8 +344,7 @@ def commit_state():
             "git",
             "config",
             "user.email",
-            "41898282+github-actions[bot]"
-            "@users.noreply.github.com",
+            "41898282+github-actions[bot]@users.noreply.github.com",
         ],
         check=True,
     )
@@ -341,8 +385,7 @@ def run():
 
     log("NSE Telegram Volume Gainer worker started.")
     log(
-        f"Current time: "
-        f"{now:%Y-%m-%d %H:%M:%S} IST"
+        f"Current time: {now:%Y-%m-%d %H:%M:%S} IST"
     )
 
     if not is_trading_day(now):
@@ -350,33 +393,31 @@ def run():
 
     if not is_monitoring_window(now):
         log(
-            "Outside 09:15-15:17 IST "
-            "monitoring window - skipping."
+            "Outside 09:15-15:24 IST monitoring window - skipping."
         )
         return
 
     today = now.strftime("%Y-%m-%d")
+
     state = load_state(today)
     notified = set(state["notified_symbols"])
 
     rows = fetch_volume_gainers()
 
     log(
-        f"NSE Volume Gainers rows from NSE: "
-        f"{len(rows)}"
+        f"NSE Volume Gainers rows from NSE: {len(rows)}"
     )
 
     filtered_rows = apply_telegram_filters(rows)
 
     log(
-        f"Telegram filters: "
-        f"Volume >= {TELEGRAM_MIN_VOLUME:,}, "
+        f"Telegram filters: Volume >= "
+        f"{TELEGRAM_MIN_VOLUME:,}, "
         f"Price >= ₹{TELEGRAM_MIN_PRICE:,.2f}"
     )
 
     log(
-        f"Eligible Telegram rows: "
-        f"{len(filtered_rows)}"
+        f"Eligible Telegram rows: {len(filtered_rows)}"
     )
 
     current_symbols = {
@@ -385,56 +426,45 @@ def run():
         if str(row.get("symbol") or "").strip()
     }
 
-    # First successful run of every trading day creates
-    # the daily baseline. Existing qualifying symbols are
-    # not alerted on that first run.
+    # First successful run of every trading day creates a baseline.
+    # Existing qualifying symbols are deliberately not alerted on
+    # that baseline run.
     if not state.get("baseline_initialized", False):
         state["date"] = today
-        state["notified_symbols"] = sorted(
-            current_symbols
-        )
+        state["notified_symbols"] = sorted(current_symbols)
         state["baseline_initialized"] = True
 
         save_state(state)
         commit_state()
 
         log(
-            "Daily filtered baseline initialized with "
+            f"Daily filtered baseline initialized with "
             f"{len(current_symbols)} symbols. "
             "No alerts sent on baseline run."
         )
-
         return
 
     new_rows = []
 
     for row in filtered_rows:
-        symbol = str(
-            row.get("symbol") or ""
-        ).strip().upper()
+        symbol = str(row.get("symbol") or "").strip().upper()
 
         if symbol and symbol not in notified:
             new_rows.append(row)
 
     log(
-        f"New qualifying symbols: "
-        f"{len(new_rows)}"
+        f"New qualifying symbols: {len(new_rows)}"
     )
 
     state_changed = False
     detected_at = now.strftime("%I:%M %p")
 
     for row in new_rows:
-        symbol = str(
-            row.get("symbol") or ""
-        ).strip().upper()
+        symbol = str(row.get("symbol") or "").strip().upper()
 
         try:
             send_telegram(
-                build_message(
-                    row,
-                    detected_at,
-                )
+                build_message(row, detected_at)
             )
 
             notified.add(symbol)
@@ -446,24 +476,19 @@ def run():
 
         except Exception as exc:
             log(
-                f"Telegram failed for "
-                f"{symbol}: {exc}"
+                f"Telegram failed for {symbol}: {exc}"
             )
 
     if state_changed:
         state["date"] = today
-        state["notified_symbols"] = sorted(
-            notified
-        )
+        state["notified_symbols"] = sorted(notified)
         state["baseline_initialized"] = True
 
         save_state(state)
         commit_state()
 
     else:
-        log(
-            "No new Telegram notifications."
-        )
+        log("No new Telegram notifications.")
 
 
 if __name__ == "__main__":
