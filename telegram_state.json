@@ -1,8 +1,12 @@
 {
   "date": "2026-08-31",
   "notified_symbols": [
+    "ALIVUS",
+    "DIFFNKG",
+    "JUSTDIAL",
     "NORTHARC",
-    "TARIL"
+    "TARIL",
+    "VIMTALABS"
   ],
   "baseline_initialized": true
 }
