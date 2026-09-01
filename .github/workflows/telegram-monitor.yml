@@ -2,15 +2,14 @@ name: NSE Telegram Monitor
 
 on:
   schedule:
-    # GitHub cron uses UTC.
-    # 09:22 IST = 03:52 UTC
-    - cron: "52 3 * * 1-5"
+    # 09:15 IST = 03:45 UTC
+    - cron: "45 3 * * 1-5"
 
-    # 09:37 IST through 14:22 IST, every 15 minutes
-    - cron: "7,22,37,52 4-8 * * 1-5"
+    # 09:30 IST through 14:45 IST
+    - cron: "0,15,30,45 4-9 * * 1-5"
 
-    # 14:37, 14:52, 15:07 and 15:17 IST
-    - cron: "7,22,37,47 9 * * 1-5"
+    # 15:00 IST = 09:30 UTC
+    - cron: "30 9 * * 1-5"
 
   workflow_dispatch:
 
