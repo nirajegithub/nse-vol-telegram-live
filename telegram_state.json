@@ -1,26 +1,14 @@
 {
-  "date": "2026-09-03",
+  "date": "2026-09-04",
   "notified_symbols": [
-    "AFFLE",
     "ANANTRAJ",
-    "ANTELOPUS",
-    "BFINVEST",
     "BFUTILITIE",
     "BRIGADE",
-    "CENTENKA",
+    "CLEANMAX",
     "ELECON",
-    "EMSLIMITED",
     "GOCLCORP",
-    "GODREJCP",
-    "HERITGFOOD",
     "HEXT",
-    "INDOCO",
-    "ONEGLOBAL",
-    "RAYMOND",
-    "RBLBANK",
-    "TORNTPOWER",
-    "WINDLAS",
-    "XPROINDIA"
+    "RAYMOND"
   ],
   "baseline_initialized": true
 }
