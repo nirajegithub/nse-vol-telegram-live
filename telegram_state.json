@@ -1,9 +1,11 @@
 {
   "date": "2026-09-08",
   "notified_symbols": [
+    "BHAGYANGR",
     "ESDS",
     "GVT&D",
-    "PCBL"
+    "PCBL",
+    "SYMPHONY"
   ],
   "baseline_initialized": true
 }
