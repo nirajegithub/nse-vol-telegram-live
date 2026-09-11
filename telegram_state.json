@@ -1,31 +1,7 @@
 {
-  "date": "2026-09-10",
+  "date": "2026-09-11",
   "notified_symbols": [
-    "BHAGYANGR",
-    "CORONA",
-    "DBL",
-    "GARFIBRES",
-    "GMDCLTD",
-    "GOACARBON",
-    "GRAPHITE",
-    "INDNIPPON",
-    "INNOVISION",
-    "ITDC",
-    "KOLTEPATIL",
-    "NOVARTIND",
-    "POKARNA",
-    "RELAXO",
-    "REPRO",
-    "SHAKTIPUMP",
-    "SHIVALIK",
-    "SHIVAUM",
-    "SREEL",
-    "SUNDRMFAST",
-    "SWANCORP",
-    "TATAINVEST",
-    "VSSL",
-    "WENDT",
-    "ZFSTEERING"
+    "GRANULES"
   ],
   "baseline_initialized": true
 }
