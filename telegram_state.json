@@ -1,25 +1,16 @@
 {
-  "date": "2026-09-11",
+  "date": "2026-09-15",
   "notified_symbols": [
     "AIIL",
-    "ARVINDFASN",
     "AWFIS",
-    "BHAGYANGR",
-    "BSOFT",
+    "BLACKBUCK",
     "ELECTHERM",
     "EQUAL50",
     "GRANULES",
-    "HDFCNIFTY",
-    "INDOCO",
     "KIRLOSIND",
-    "METROBRAND",
-    "ORIENTTECH",
-    "QUADFUTURE",
     "RACLGEAR",
     "SENSEXIETF",
-    "SIKA",
-    "SMSPHARMA",
-    "SUNTV"
+    "WESTLIFE"
   ],
   "baseline_initialized": true
 }
