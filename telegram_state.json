@@ -1,16 +1,23 @@
 {
   "date": "2026-09-15",
   "notified_symbols": [
+    "AFCONS",
     "AIIL",
     "AWFIS",
     "BLACKBUCK",
     "ELECTHERM",
+    "EMUDHRA",
     "EQUAL50",
     "GRANULES",
+    "KEC",
     "KIRLOSIND",
     "RACLGEAR",
+    "RAYMONDREL",
     "SENSEXIETF",
-    "WESTLIFE"
+    "TATACHEM",
+    "TATAINVEST",
+    "WESTLIFE",
+    "ZENSARTECH"
   ],
   "baseline_initialized": true
 }
