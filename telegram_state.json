@@ -1,34 +1,16 @@
 {
-  "date": "2026-09-16",
+  "date": "2026-09-17",
   "notified_symbols": [
-    "AEROFLEX",
-    "APOLLOTYRE",
-    "ARROWGREEN",
     "CSBBANK",
     "EMUDHRA",
     "FOSECOIND",
-    "FSL",
-    "GODAVARIB",
-    "GODREJIND",
     "GSEC10IETF",
-    "GUJAPOLLO",
-    "IGARASHI",
-    "JINDALPHOT",
-    "JINDALPOLY",
-    "JSWHL",
     "KRYSTAL",
-    "LALPATHLAB",
     "NPST",
     "PATANJALI",
-    "PAYTM",
-    "PGIL",
     "SAATVIKGL",
     "SEJALLTD",
-    "SENSEXBETA",
-    "SHOPERSTOP",
-    "TATACHEM",
-    "WELENT",
-    "ZENSARTECH"
+    "TATACHEM"
   ],
   "baseline_initialized": true
 }
