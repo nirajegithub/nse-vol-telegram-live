@@ -1,9 +1,14 @@
 {
   "date": "2026-09-18",
   "notified_symbols": [
+    "BBTC",
+    "BEML",
+    "LALITHAA",
+    "LODHA",
     "PAYTM",
     "TATACHEM",
-    "TMPV"
+    "TMPV",
+    "YATHARTH"
   ],
   "baseline_initialized": true
 }
